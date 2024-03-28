@@ -37,20 +37,6 @@ Java_ru_iu3_fclient_MainActivity_initRng(JNIEnv *env, jclass clazz) {
 
 JavaVM *gJvm = nullptr;
 
-JNIEnv *getEnv(bool &detach) {
-    JNIEnv *env = nullptr;
-    int status = gJvm->GetEnv((void **) &env, JNI_VERSION_1_6);
-    detach = false;
-    if (status == JNI_EDETACHED) {
-        status = gJvm->AttachCurrentThread(&env, NULL);
-        if (status < 0) {
-            return nullptr;
-        }
-        detach = true;
-    }
-    return env;
-}
-
 extern "C" JNIEXPORT jbyteArray
 Java_ru_iu3_fclient_MainActivity_randomBytes(JNIEnv *env, jclass, jint no) {
     uint8_t * buf = new uint8_t [no];
@@ -59,12 +45,6 @@ Java_ru_iu3_fclient_MainActivity_randomBytes(JNIEnv *env, jclass, jint no) {
     env->SetByteArrayRegion(rnd, 0, no, (jbyte *)buf);
     delete[] buf;
     return rnd;
-}
-
-void releaseEnv(bool detach, JNIEnv *env) {
-    if (detach && (gJvm != nullptr)) {
-        gJvm->DetachCurrentThread();
-    }
 }
 
 extern "C" JNIEXPORT jbyteArray
@@ -133,6 +113,36 @@ Java_ru_iu3_fclient_MainActivity_decrypt(JNIEnv *env, jclass, jbyteArray key, jb
     env->ReleaseByteArrayElements(data, pdata, 0);
     return dout;
 }
+
+JNIEnv* getEnv (bool& detach)
+{
+    JNIEnv* env = nullptr;
+    int status = gJvm->GetEnv ((void**)&env, JNI_VERSION_1_6);
+    detach = false;
+    if (status == JNI_EDETACHED)
+    {
+        status = gJvm->AttachCurrentThread (&env, NULL);
+        if (status < 0)
+        {
+            return nullptr;
+        }
+        detach = true;
+    }
+    return env;
+}
+
+void releaseEnv(bool detach, JNIEnv *env) {
+    if (detach && (gJvm != nullptr)) {
+        gJvm->DetachCurrentThread();
+    }
+}
+
+JNIEXPORT jint JNICALL JNI_OnLoad (JavaVM* pjvm, void* reserved)
+{
+    gJvm = pjvm;
+    return JNI_VERSION_1_6;
+}
+
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_ru_iu3_fclient_MainActivity_transaction(JNIEnv *xenv, jobject xthiz, jbyteArray xtrd) {
@@ -180,3 +190,6 @@ Java_ru_iu3_fclient_MainActivity_transaction(JNIEnv *xenv, jobject xthiz, jbyteA
     t.detach();
     return true;
 }
+
+
+
