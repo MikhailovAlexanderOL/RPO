@@ -1,5 +1,6 @@
 package ru.iu3.backend.controllers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import ru.iu3.backend.model.Country;
+import ru.iu3.backend.model.Artist;
 import ru.iu3.backend.repository.CountryRepository;
 
 
@@ -44,6 +46,16 @@ public class CountryController {
             return new ResponseEntity<Object> (map, HttpStatus.OK);
         }
     }
+
+    @GetMapping("/countries/{id}/artists")
+    public ResponseEntity<List<Artist>> getCountryArtists(@PathVariable(value = "id") Long countryId) {
+        Optional<Country> cc = countryRepository.findById(countryId);
+        if (cc.isPresent()) {
+            return ResponseEntity.ok(cc.get().artistList);
+        }
+        return ResponseEntity.ok(new ArrayList<Artist>());
+    }
+
 
     @PutMapping("/countries/{id}")
     public ResponseEntity<Country> updateCountry(@PathVariable(value = "id") Long countryId,
