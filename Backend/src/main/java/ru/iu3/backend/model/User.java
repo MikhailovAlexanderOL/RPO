@@ -13,6 +13,9 @@ public class User {
     public User() {
     }
 
+    @Transient
+    public String np;
+
     public User(Long id) {
         this.id = id;
     }
@@ -52,4 +55,6 @@ public class User {
         this.museums.remove(m);
         m.users.remove(this);
     }
+
+
 }
